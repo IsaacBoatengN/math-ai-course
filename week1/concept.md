@@ -31,19 +31,19 @@ $$ \|x+y\|^2 + \|x-y\|^2 = 2(\|x\|^2 + \|y\|^2). $$
 
 The sequence space $\ell^p$ with $p \neq 2$ satisfies the triangle inequality but violates the parallelogram law; hence $\ell^p$ (for $p\neq 2$) is Banach but not Hilbert.
 
-## Riesz Representation Theorem (the crown jewel)
+## Riesz Representation Theorem
 
 Every **bounded linear functional** $f$ on a Hilbert space $H$ can be represented uniquely via the inner product with a fixed vector $z \in H$:
 
 $$ f(x) = \langle x, z \rangle \quad \forall x \in H. $$
 
-Moreover, $\|f\| = \|z\|$. This theorem identifies the dual space $H'$ with $H$ itself – a property that fails for general Banach spaces.
+Moreover, $\|f\| = \|z\|$. This theorem identifies the dual space $H'$ with $H$ itself, a property that fails for general Banach spaces.
 
 ### Immediate Consequence
 
 If $x_1 \neq x_2$ in $H$, there exists a bounded linear functional $f$ such that $f(x_1) \neq f(x_2)$ (the Hahn–Banach corollary, but in Hilbert spaces we can construct $f$ explicitly using the inner product).
 
-## Why Graduate‑Level Significance
+## Importance
 
 Hilbert spaces are the foundation of:
 - **Quantum mechanics** (state vectors in $L^2$)
