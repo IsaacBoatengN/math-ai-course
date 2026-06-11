@@ -238,39 +238,39 @@ $$u(x) = \int_0^1 G(x,y) s(y)\,dy.$$
 
 The adjoint solves
 
-$$-\frac{d^2 p}{dx^2} = -(u(x^*)-d)\,\delta(x-x^*), \qquad p(0)=p(1)=0,$$
+$$-\frac{d^2 p}{dx^2} = -(u(x_s)-d)\,\delta(x-x_s), \qquad p(0)=p(1)=0,$$
 
 giving
 
-$$p(x) = (u(x^*)-d) G(x,x^*).$$
+$$p(x) = (u(x_s)-d) G(x,x_s).$$
 
 The optimal source is
 
-$$s(x) = -\frac{1}{\alpha} p(x) = -\frac{u(x^*)-d}{\alpha} G(x,x^*).$$
+$$s(x) = -\frac{1}{\alpha} p(x) = -\frac{u(x_s)-d}{\alpha} G(x,x_s).$$
 
-Substitute into the forward equation and evaluate at $x^*$:
+Substitute into the forward equation and evaluate at $x_s$:
 
-$$u(x^*) = \int_0^1 G(x^*,y) s(y)\,dy = -\frac{u(x^*)-d}{\alpha} \int_0^1 G(x^*,y) G(y,x^*)\,dy. $$
+$$u(x_s) = \int_0^1 G(x_s,y) s(y)\,dy = -\frac{u(x_s)-d}{\alpha} \int_0^1 G(x_s,y) G(y,x_s)\,dy. $$
 
 Define constant
 
-$$C = \int_0^1 G(x^*,y)^2 \,dy. $$
+$$C = \int_0^1 G(x_s,y)^2 \,dy. $$
 
 Then
 
-$$u(x^*) = -\frac{C}{\alpha}(u(x^*)-d).$$
+$$u(x_s) = -\frac{C}{\alpha}(u(x_s)-d).$$
 
-Solve for $u(x^*)$:
+Solve for $u(x_s)$:
 
-$$u(x^*) \left(1 + \frac{C}{\alpha} \right) = \frac{C}{\alpha} d,$$
+$$u(x_s) \left(1 + \frac{C}{\alpha} \right) = \frac{C}{\alpha} d,$$
 
 so
 
-$$u(x^*) = \frac{C}{\alpha + C} d.$$ 
+$$u(x_s) = \frac{C}{\alpha + C} d.$$ 
 
 Hence the optimal source is
 
-$$s(x) = -\frac{d}{\alpha + C} G(x,x^*).$$
+$$s(x) = -\frac{d}{\alpha + C} G(x,x_s).$$
 
 This illustrates how the data $d$ is filtered by the regularization parameter $\alpha$ and the Green's function structure.
 
