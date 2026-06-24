@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualizing Lebesgue Measure</title>
+  <style>
+    :root {
+      color-scheme: light;
+      background: #ffffff;
+      color: #003057;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+      background: #ffffff;
+      color: #003057;
+    }
+
+    .container {
+      max-width: 960px;
+      width: 100%;
+      display: grid;
+      gap: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.5rem, 4vw, 4rem);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+
+    p.description {
+      margin: 0;
+      font-size: 1.15rem;
+      max-width: 760px;
+      line-height: 1.7;
+      opacity: 0.87;
+    }
+
+    .panel {
+      background: #f8fafc;
+      border: 1px solid rgba(0, 48, 87, 0.12);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 18px 45px rgba(0, 48, 87, 0.06);
+    }
+
+    .panel label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .slider-row {
+      display: grid;
+      gap: 10px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #003057;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      margin-top: 12px;
+      font-size: 1rem;
+    }
+
+    .stat {
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: #ffffff;
+      border: 1px solid rgba(0, 48, 87, 0.12);
+      min-width: 190px;
+    }
+
+    .canvas-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 5;
+      border-radius: 18px;
+      background: #ffffff;
+      overflow: hidden;
+      border: 1px solid rgba(0, 48, 87, 0.12);
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .explanation {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.8;
+      color: rgba(0, 48, 87, 0.94);
+    }
+
+    .note {
+      margin-top: 8px;
+      font-size: 0.95rem;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Visualizing Lebesgue Measure</h1>
+      <p class="description">Adjust the number of disjoint intervals on [0, 1] and see how the total length equals the Lebesgue measure of their union.</p>
+    </header>
+
+    <section class="panel">
+      <div class="slider-row">
+        <label for="intervalCount">
+          Number of disjoint intervals:
+          <strong id="intervalCountValue">5</strong>
+        </label>
+        <input id="intervalCount" type="range" min="1" max="10" value="5" step="1" aria-label="Number of disjoint intervals">
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <strong>Total Lebesgue measure</strong>
+          <div id="totalMeasure">0.32</div>
+        </div>
+        <div class="stat">
+          <strong>Measure equals sum of lengths</strong>
+          <div id="measureFormula">0.08 + 0.05 + ...</div>
+        </div>
+      </div>
+      <p class="note">The measure of a union of disjoint sets is the sum of their individual measures. Here each interval’s length contributes directly to the total.</p>
+    </section>
+
+    <section class="panel canvas-wrapper">
+      <canvas id="measureCanvas" width="1200" height="380" aria-label="Lebesgue measure visualization"></canvas>
+    </section>
+
+    <section class="panel">
+      <p class="explanation"><strong>How to read this graphic:</strong> each blue bar is an interval inside [0, 1], and the thick line below is the number line. Because the intervals do not overlap, the union of these intervals has a measure equal to the sum of their lengths.</p>
+      <p class="note">This concrete picture supports the key Lebesgue idea: measure is an assignment of size to sets, and for disjoint intervals it is simply their total length.</p>
+    </section>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('measureCanvas');
+    const ctx = canvas.getContext('2d');
+    const intervalCountInput = document.getElementById('intervalCount');
+    const intervalCountValue = document.getElementById('intervalCountValue');
+    const totalMeasureLabel = document.getElementById('totalMeasure');
+    const measureFormulaLabel = document.getElementById('measureFormula');
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const padding = 70;
+    const lineY = height * 0.7;
+    const axisColor = '#003057';
+    const intervalColor = '#003057';
+    const ghostColor = 'rgba(0, 48, 87, 0.12)';
+
+    function getDisjointIntervals(n) {
+      const totalAvailable = 0.92;
+      const baseGap = 0.04;
+      const segmentSize = totalAvailable / n;
+      const intervals = [];
+
+      for (let i = 0; i < n; i += 1) {
+        const start = 0.04 + i * segmentSize + 0.06 * Math.sin((i + 1) * 1.9) * 0.08;
+        const length = Math.max(0.05, segmentSize * (0.5 + 0.35 * Math.cos((i + 1) * 0.6)));
+        const end = Math.min(0.96, start + length);
+        intervals.push({ start, end, length: end - start });
+      }
+
+      // Ensure the intervals remain disjoint by adjusting any overlaps.
+      for (let i = 1; i < intervals.length; i += 1) {
+        const prev = intervals[i - 1];
+        const current = intervals[i];
+        if (current.start <= prev.end) {
+          const shift = prev.end - current.start + 0.004;
+          current.start += shift;
+          current.end = Math.min(0.96, current.start + current.length);
+          current.length = current.end - current.start;
+        }
+      }
+
+      return intervals;
+    }
+
+    function formatNumber(value) {
+      return value.toFixed(3).replace(/\.0+$/, '');
+    }
+
+    function draw() {
+      const n = Number(intervalCountInput.value);
+      intervalCountValue.textContent = n;
+
+      const intervals = getDisjointIntervals(n);
+      const measureSum = intervals.reduce((sum, interval) => sum + interval.length, 0);
+
+      totalMeasureLabel.textContent = formatNumber(measureSum);
+      measureFormulaLabel.textContent = intervals
+        .map((interval, index) => `ℓ(${index + 1})=${formatNumber(interval.length)}`)
+        .join(' + ');
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+
+      // Draw grid lines for 0, 0.25, 0.5, 0.75, 1
+      ctx.strokeStyle = ghostColor;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 6]);
+      [0, 0.25, 0.5, 0.75, 1].forEach((value) => {
+        const x = padding + value * (width - padding * 2);
+        ctx.beginPath();
+        ctx.moveTo(x, padding * 0.4);
+        ctx.lineTo(x, lineY + 50);
+        ctx.stroke();
+      });
+      ctx.setLineDash([]);
+
+      // Draw number line
+      ctx.strokeStyle = axisColor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(padding, lineY);
+      ctx.lineTo(width - padding, lineY);
+      ctx.stroke();
+
+      ctx.fillStyle = axisColor;
+      ctx.font = '600 18px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      [0, 0.25, 0.5, 0.75, 1].forEach((value) => {
+        const x = padding + value * (width - padding * 2);
+        ctx.fillText(value.toString(), x, lineY + 32);
+      });
+      ctx.fillText('[0, 1]', width / 2, lineY - 28);
+
+      // Draw intervals
+      intervals.forEach((interval, index) => {
+        const x1 = padding + interval.start * (width - padding * 2);
+        const x2 = padding + interval.end * (width - padding * 2);
+        const y = lineY - 18 - (index % 2 === 0 ? 0 : 18);
+        const heightBar = 22;
+
+        ctx.fillStyle = intervalColor;
+        ctx.fillRect(x1, y, x2 - x1, heightBar);
+
+        ctx.strokeStyle = '#02324b';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x1, y, x2 - x1, heightBar);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '600 14px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(formatNumber(interval.length), (x1 + x2) / 2, y + heightBar / 2 + 5);
+      });
+    }
+
+    intervalCountInput.addEventListener('input', draw);
+    draw();
+  </script>
+</body>
+</html>
